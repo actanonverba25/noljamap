@@ -13,13 +13,14 @@
 
 ## Procedure (every run)
 1. Run `KAKAO_REST_KEY="$KAKAO_REST_KEY" python3 scripts/auto_update_venues.py`. The last line is a JSON summary: `{"added": N, "total": ..., "new_this_run_regions": {...}, "auto_total": ...}`.
-2. If `added == 0`: nothing new. Exit without a commit. Report "0 new venues".
-3. If `added > 0`:
-   1. **Quality check.** Look at the 10–15 most recent `source == "kakao_auto"` rows (name + Kakao category). If a non-nightlife false positive slipped in (dance studio, study café, kids' café, gym, golf...), remove that row or roll back the whole file, and report which keyword should be added to `EXCLUDE`.
+2. Write `data/last_run.json` (`{"ran_at": <UTC ISO>, "added": N}`) **on every run, whatever the result**, and commit it. A daily GitHub Actions job (`routine-heartbeat.yml`) reads this file and opens an issue if it is more than five days old, so a routine that never starts still sets off an alarm.
+3. If `added == 0`: nothing new. Commit only `last_run.json`. Report "0 new venues".
+4. If `added > 0`:
+   1. **Quality check.** Look at the 10–15 most recent `source == "kakao_auto"` rows (name + Kakao category). If a non-nightlife false positive slipped in (dance studio, study café, kids' café, gym, golf...), remove that row only, keep the rest, add the keyword to `EXCLUDE`, and report it. Do not roll back the whole file (see 2026-09-14 below).
    2. **Validate JSON**: `python3 -c "import json;json.load(open('data/clubs.json',encoding='utf-8'))"`.
    3. **Commit** `data/clubs.json` with message `Auto-add N venues (kakao_auto)`.
    4. **Push** to `main`. Vercel deploys in 1–2 minutes.
-4. **Report**: count added, distribution by region, whether a deploy happened.
+5. **Report**: count added, distribution by region, whether a deploy happened.
 
 ## Guardrails (built into the script; the agent can rely on them)
 - **Idempotent**: an existing venue (normalized name or `place_url`) is never re-added. Reruns produce zero duplicates.

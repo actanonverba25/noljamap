@@ -29,7 +29,7 @@ The update procedure is written as a Markdown file and executed by a scheduled C
 
 **Two corrections the log forced:**
 1. *2026-09-14.* The routine found 60 candidates and caught one board-game café that passed because my filter matched "pub" anywhere in the Kakao category string, including the café's brand name. My rule said any false positive means roll back everything, so it threw away all 60 and proposed the filter fix. The agent followed the procedure; the procedure was too broad. The rule now drops the bad row, adds the pattern to `EXCLUDE`, and ships the rest.
-2. *2026-09-24 → 10-12.* Four runs failed at the clone step because a GitHub token had lapsed. The failure happened before the agent started, so nothing reported it. Three weeks of silence looked exactly like three weeks of "nothing new". The fix is a check that does not depend on the routine reporting on itself.
+2. *2026-09-24 → 10-12.* Four runs failed at the clone step because a GitHub token had lapsed. The failure happened before the agent started, so nothing reported it. Three weeks of silence looked exactly like three weeks of "nothing new". The fix is `routine-heartbeat.yml`: the routine now commits `data/last_run.json` on every run, and a daily GitHub Actions job opens an issue and fails if that file is more than five days old. The alarm comes from GitHub, not from the routine.
 
 ## Data pipeline (one-off and periodic scripts)
 

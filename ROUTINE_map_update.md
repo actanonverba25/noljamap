@@ -20,15 +20,20 @@
    KAKAO_REST_KEY="$KAKAO_REST_KEY" python3 scripts/auto_update_venues.py
    ```
    → 마지막 줄에 JSON 요약이 출력됨: `{"added": N, "total": ..., "new_this_run_regions": {...}, "auto_total": ...}`
-3. **`added == 0`** 이면 → 신규 없음. 커밋·배포 없이 종료. 보고: "신규 0곳(변경 없음)".
+   그리고 **실행 기록을 반드시 남긴다** (결과와 무관하게):
+   ```bash
+   python3 -c "import json,datetime;json.dump({'ran_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'added':ADDED},open('data/last_run.json','w'))"
+   ```
+   (`ADDED`는 위 요약의 added 값). 이 파일은 GitHub Actions `routine-heartbeat`가 매일 읽어, 5일 넘게 갱신이 없으면 이슈를 열고 실패 알림을 보낸다. 루틴이 시작조차 못 해도 알림이 가게 하는 장치.
+3. **`added == 0`** 이면 → 신규 없음. `data/last_run.json`만 커밋·푸시하고 종료 (하트비트용, 아래 참고). 보고: "신규 0곳(변경 없음)".
 4. **`added > 0`** 이면:
    1. **품질 점검**: 이번에 추가된 `source == "kakao_auto"` 항목 중 최근 것 10~15개의 이름·카테고리를 확인.
       - 나이트라이프가 아닌 **오탐**(살사/댄스/스터디/독서/키즈/헬스/골프 등)이 섞였으면:
-        해당 항목만 제거하거나 `git checkout data/clubs.json` 로 **통째 롤백** 후, `scripts/auto_update_venues.py`의 `EXCLUDE`에 해당 키워드 추가가 필요하다고 보고.
+        **해당 항목만 제거**하고 나머지는 그대로 진행. 통째 롤백은 하지 않는다 (2026-09-14 교훈: 오탐 1곳 때문에 정상 59곳을 버렸음). 제거한 항목의 카테고리 키워드를 `scripts/auto_update_venues.py`의 `EXCLUDE`에 추가하고, 추가한 키워드를 보고.
    2. **JSON 유효성**: `python3 -c "import json;json.load(open('data/clubs.json',encoding='utf-8'))"` 통과 확인.
    3. **커밋** (⚠️ Vercel 통과용 author 이메일 **필수**):
       ```bash
-      git add data/clubs.json
+      git add data/clubs.json data/last_run.json
       git commit -m "지도 신규 업체 N곳 자동 추가 (kakao_auto)"
       ```
    4. **푸시**: `git push origin HEAD:main` → Vercel 자동 배포(1~2분).

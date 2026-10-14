@@ -1,0 +1,36 @@
+name: Routine heartbeat
+
+# The venue-update routine commits data/last_run.json on every run.
+# This job runs daily and raises an alarm if that file is stale, so a routine that
+# fails before it starts (expired token, broken clone) still gets noticed.
+on:
+  schedule:
+    - cron: "0 1 * * *"   # daily 01:00 UTC (10:00 KST)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fail and open an issue if the routine has not run in 5 days
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FILE: data/last_run.json
+        run: |
+          last=$(python3 -c "import json;print(json.load(open('$FILE'))['ran_at'])" 2>/dev/null || true)
+          if [ -z "$last" ]; then echo "::error::$FILE missing"; age=999; else
+            age=$(python3 -c "import datetime,sys;d=datetime.datetime.fromisoformat('$last'.replace('Z','+00:00'));print((datetime.datetime.now(datetime.timezone.utc)-d).days)")
+          fi
+          echo "last run: ${last:-none} (${age} days ago)"
+          if [ "$age" -gt 5 ]; then
+            if [ "$(gh issue list --state open --search 'Routine heartbeat' --json number -q 'length')" = "0" ]; then
+              gh issue create --title "Routine heartbeat: venue updater silent for ${age} days" \
+                --body "data/last_run.json was last written ${last:-never}. Check the Claude Code routine (auth, clone step) and re-run."
+            fi
+            exit 1
+          fi
