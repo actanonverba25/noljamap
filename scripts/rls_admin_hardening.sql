@@ -6,6 +6,9 @@
 create table if not exists public.admin_users (
   email text primary key
 );
+-- RLS on with no policies: anon/authenticated cannot read or change the allowlist.
+-- is_admin() is security definer, so it can still read it.
+alter table public.admin_users enable row level security;
 -- insert into public.admin_users (email) values ('<admin email>');
 
 create or replace function public.is_admin()
