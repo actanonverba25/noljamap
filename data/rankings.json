@@ -1,0 +1,45 @@
+{
+  "_note": "지역별 1~5위 수동 큐레이션 + NEW. ranks의 배열 순서가 곧 등수(첫 번째=1위, 최대 5개). id는 clubs.json의 club.id와 일치해야 함. 현재는 리서치 인지도 기반 시드값 — 클릭수·인스타 해시태그/스토리 활성도를 보고 자유롭게 직접 수정. (자동 집계는 P2 Supabase에서 클릭·제보 데이터로 승격)",
+  "updated": "2026-06-03",
+  "ranks": {
+    "이태원": [
+      "gathering_itaewon",
+      "itwsavage",
+      "themansion_itaewon",
+      "hiveitaewon",
+      "deeper_itaewon"
+    ],
+    "홍대": [
+      "club_sabotage",
+      "club_dokkaebi_official",
+      "sinkhole_official_",
+      "thisisclub25",
+      "b1_hongdae"
+    ],
+    "강남": [
+      "orientallounge.gangnam",
+      "color_apgu",
+      "code_seoul",
+      "timesapgu",
+      "introseoul_official"
+    ],
+    "부산서면": [
+      "groovebusan",
+      "clubazit__official",
+      "creambasement",
+      "jeje_busan",
+      "thursdayparty_seomyeon1"
+    ],
+    "대구": [
+      "clubau_official",
+      "dhell_official",
+      "club_loopy",
+      "clubair_",
+      "roots.daegu"
+    ]
+  },
+  "new": [
+    "circus_seoul",
+    "waikiki_utopia"
+  ]
+}

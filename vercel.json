@@ -1,0 +1,6 @@
+{
+  "redirects": [
+    { "source": "/en", "destination": "/?lang=en" },
+    { "source": "/ko", "destination": "/?lang=ko" }
+  ]
+}

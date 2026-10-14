@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>놀자맵 · 오늘 밤 어디서 놀까</title>
+  <meta name="description" content="클럽·포차·소개팅·심야술집을 한 지도에. 물 좋은 곳 투표·댓글로 같이 만드는 커뮤니티 나이트라이프 지도." />
+
+  <!-- 공유 미리보기 (카톡·인스타·트위터) -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://xn--w80bk4nsxl.kr/" />
+  <meta property="og:title" content="놀자맵 — 오늘 밤 어디서 놀까" />
+  <meta property="og:description" content="클럽·포차·소개팅·심야술집을 한 지도에. 물 좋은 곳 투표·댓글로 같이 만드는 커뮤니티 나이트라이프 지도." />
+  <meta property="og:image" content="https://xn--w80bk4nsxl.kr/og.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:site_name" content="놀자맵" />
+  <meta property="og:locale" content="ko_KR" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="놀자맵 — 오늘 밤 어디서 놀까" />
+  <meta name="twitter:description" content="클럽·포차·소개팅·심야술집 커뮤니티 지도" />
+  <meta name="twitter:image" content="https://xn--w80bk4nsxl.kr/og.png" />
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="title-wrap">
+      <h1>놀자맵</h1>
+      <span class="subtitle" data-i18n="subtitle">클럽 · 포차 · 라운지 · 펍 — 의도별 큐레이션</span>
+    </div>
+    <button id="inquiryBtn" class="inquiry-btn" type="button" aria-label="문의">📩</button>
+    <button id="langToggle" class="lang-toggle" type="button" aria-label="Language">EN</button>
+  </header>
+
+  <div class="searchbar">
+    <input id="searchInput" type="search" placeholder="🔍 동네·핫플 검색 (예: 이태원)" data-i18n-ph="search_ph" autocomplete="off" />
+    <span id="searchCount" class="search-count"></span>
+    <div id="searchSuggest" class="search-suggest hidden"></div>
+  </div>
+
+  <nav class="filters" id="filters">
+    <button id="allToggle" class="chip active" type="button" data-i18n="f_all">전체</button>
+    <button id="openNowToggle" class="chip" type="button" data-i18n="f_open">🟢 지금 가능</button>
+    <button id="rankToggle" class="chip" type="button" data-i18n="f_top5">🏆 TOP5</button>
+    <button id="eventToggle" class="chip" type="button" data-i18n="f_event">🎉 이벤트</button>
+    <div class="filter-divider"></div>
+    <div class="filter-group" id="categoryFilters" aria-label="카테고리 필터"></div>
+  </nav>
+
+  <main class="layout">
+    <div id="map" class="map"></div>
+
+    <aside id="detail" class="detail hidden" aria-live="polite">
+      <button id="detailClose" class="detail-close" type="button" aria-label="닫기">✕</button>
+      <div id="detailBody"></div>
+    </aside>
+
+    <div class="legend" id="legend"></div>
+    <div class="count-pill" id="countPill">0곳</div>
+
+    <button id="locateBtn" class="locate-fab" type="button" aria-label="내 위치" data-i18n-aria="locate">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+        <path fill="currentColor" d="M12 8a4 4 0 100 8 4 4 0 000-8zm9 3h-2.06A7.01 7.01 0 0013 5.06V3a1 1 0 10-2 0v2.06A7.01 7.01 0 005.06 11H3a1 1 0 100 2h2.06A7.01 7.01 0 0011 18.94V21a1 1 0 102 0v-2.06A7.01 7.01 0 0018.94 13H21a1 1 0 100-2zm-9 6a5 5 0 110-10 5 5 0 010 10z"/>
+      </svg>
+    </button>
+    <button id="rankingBtn" class="ranking-btn" type="button" data-i18n="btn_ranking">🏆 랭킹</button>
+    <button id="reportBtn" class="report-btn" type="button" data-i18n="btn_report">➕ 제보</button>
+    <div id="pickHint" class="pick-hint hidden"><span data-i18n="pick_hint">📍 지도를 탭해 위치를 선택하세요</span> <button id="pickCancel" type="button" data-i18n="cancel">취소</button></div>
+
+    <!-- 지도 내 업장 리스트 (하단 시트) -->
+    <div id="listSheet" class="list-sheet">
+      <button class="ls-handle" id="lsHandle" type="button">
+        <span class="ls-grip"></span>
+        <span class="ls-count" id="lsCount">지도 내 0곳</span>
+        <span class="ls-total" id="lsTotal">누적 0개</span>
+        <span class="ls-arrow" id="lsArrow">▲</span>
+      </button>
+      <div class="ls-body" id="lsBody"></div>
+    </div>
+  </main>
+
+  <!-- 하단 탭바 (지도 ↔ 놀자방) -->
+  <nav class="tabbar">
+    <a class="tabbar-item active" href="./">
+      <span class="tb-ic">🗺️</span><span data-i18n="tab_map">지도</span>
+    </a>
+    <a class="tabbar-item" href="bang.html">
+      <span class="tb-ic">💬</span><span data-i18n="tab_bang">놀자방</span>
+    </a>
+  </nav>
+
+  <!-- 온보딩 -->
+  <div id="onboarding" class="onboarding hidden">
+    <div class="onboard-card">
+      <div class="onboard-logo">🌃</div>
+      <h2 class="onboard-title">놀자맵</h2>
+      <p class="onboard-tagline" data-i18n="ob_tagline">서울 밤을 함께 기록하는 커뮤니티 지도</p>
+      <div class="onboard-points">
+        <div class="ob-point"><span class="ob-ic">📍</span><span data-i18n="ob_p1">클럽·포차·소개팅·심야술집을 한 지도에서</span></div>
+        <div class="ob-point"><span class="ob-ic">➕</span><span data-i18n="ob_p2">직접 가본 곳·오늘의 파티를 제보해요</span></div>
+        <div class="ob-point"><span class="ob-ic">💬</span><span data-i18n="ob_p3">물 좋은 곳 투표·댓글로 같이 만들어요</span></div>
+      </div>
+      <button id="obExplore" class="ob-cta primary" type="button" data-i18n="ob_explore">🗺️ 지도 둘러보기</button>
+      <button id="obReport" class="ob-cta" type="button" data-i18n="ob_report">➕ 제보하기</button>
+      <button id="obDismiss" class="ob-dismiss" type="button" data-i18n="ob_dismiss">오늘 하루 보지 않기</button>
+      <p class="onboard-foot" data-i18n="ob_foot">유저 제보 기반 정보 · 방문 전 확인 권장</p>
+    </div>
+  </div>
+
+  <!-- 랭킹 패널 -->
+  <div id="rankingPanel" class="ranking-panel hidden">
+    <div class="ranking-card">
+      <div class="ranking-head">
+        <div><b data-i18n="rank_title">🏆 랭킹</b> <span class="ranking-sub" data-i18n="rank_sub">종합 소셜 점수</span></div>
+        <button id="rankingClose" class="report-close" type="button" aria-label="닫기">✕</button>
+      </div>
+      <div id="rankingList" class="ranking-list"></div>
+    </div>
+  </div>
+
+  <!-- 제보 모달 -->
+  <div id="reportModal" class="report-modal hidden">
+    <div class="report-card">
+      <button id="reportClose" class="report-close" type="button" aria-label="닫기">✕</button>
+      <h3 id="rpTitle" data-i18n="rp_title_new">새 장소 제보</h3>
+      <p class="rp-sub" data-i18n="rp_sub_new">제보하면 바로 지도에 "미검증"으로 떠요. 운영자가 확인해요.</p>
+      <div class="rp-type" id="rpTypeToggle">
+        <button data-type="new" class="rp-type-btn active" type="button" data-i18n="rp_type_new">📍 새 장소</button>
+        <button data-type="event" class="rp-type-btn" type="button" data-i18n="rp_type_event">🎉 오늘의 파티·이벤트</button>
+      </div>
+      <label data-i18n="lbl_category">카테고리</label>
+      <select id="rpCategory"></select>
+      <label data-i18n="lbl_name">이름</label>
+      <input id="rpName" type="text" placeholder="업장·이벤트 이름" data-i18n-ph="rp_name_ph" autocomplete="off" />
+      <div id="rpDateWrap" class="hidden">
+        <label><span data-i18n="lbl_date">날짜</span> <span class="rp-opt" data-i18n="rp_opt_event">(이벤트)</span></label>
+        <input id="rpDate" type="date" />
+      </div>
+      <label><span data-i18n="lbl_loc">위치</span> <span class="rp-opt" data-i18n="rp_loc_opt">(지도 선택 또는 주소 입력)</span></label>
+      <div class="rp-loc">
+        <button id="rpPick" type="button" class="pick-btn" data-i18n="rp_pick">📍 지도에서 선택</button>
+        <span id="rpCoord" class="pick-coord" data-i18n="rp_unset">미선택</span>
+      </div>
+      <input id="rpAddr" type="text" class="rp-addr" placeholder="또는 주소·장소명 직접 입력 (예: 강남역 11번출구)" data-i18n-ph="rp_addr_ph" autocomplete="off" />
+      <label><span data-i18n="lbl_link">인스타·링크</span> <span class="rp-opt" data-i18n="rp_opt">(선택)</span></label>
+      <input id="rpInsta" type="text" placeholder="https://instagram.com/…" autocomplete="off" />
+      <label><span data-i18n="lbl_memo">메모</span> <span class="rp-opt" data-i18n="rp_opt">(선택)</span></label>
+      <textarea id="rpMemo" rows="2" placeholder="입장료·요일·특징 등" data-i18n-ph="rp_memo_ph"></textarea>
+      <button id="rpSubmit" class="rp-submit" type="button" data-i18n="rp_submit">제보하기</button>
+      <div id="rpMsg" class="rp-msg"></div>
+    </div>
+  </div>
+
+  <!-- 고객 문의 팝업 -->
+  <div id="inquiryModal" class="inquiry-modal hidden">
+    <div class="inq-card">
+      <div class="inq-title" data-i18n="inquiry_title">📩 문의하기</div>
+      <p class="inq-sub" data-i18n="inquiry_sub">제보 말고 문의·제휴·제안은 여기로!</p>
+      <a class="inq-link" href="https://instagram.com/noljamap" target="_blank" rel="noopener" data-i18n="inquiry_insta">📷 인스타 DM · @noljamap</a>
+      <a class="inq-link" href="mailto:noljamap@gmail.com" data-i18n="inquiry_mail">✉️ 이메일 · noljamap@gmail.com</a>
+      <button class="inq-close" id="inqClose" type="button" data-i18n="inquiry_close">닫기</button>
+    </div>
+  </div>
+
+  <div id="banner" class="banner hidden"></div>
+
+  <script src="config.js"></script>
+  <script src="analytics.js"></script>
+  <script src="i18n.js"></script>
+  <script src="mapengine.js"></script>
+  <script src="supabase.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>놀자방 · 오늘 어디가 물 좋아?</title>
+  <meta name="description" content="오늘 어디 붐벼? 물 좋아? 같이 갈 사람 — 서울 나이트라이프 실시간 커뮤니티 놀자방." />
+  <meta property="og:title" content="놀자방 — 오늘 어디가 물 좋아?" />
+  <meta property="og:description" content="붐빔·물좋음·같이가요 실시간 공유. 놀자맵 커뮤니티." />
+  <meta property="og:url" content="https://xn--w80bk4nsxl.kr/bang.html" />
+  <meta property="og:image" content="https://xn--w80bk4nsxl.kr/og.png" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* styles.css(지도용)의 body overflow:hidden 덮어써서 놀자방은 정상 스크롤 */
+    html, body { height: auto; overflow-x: hidden; overflow-y: auto; }
+    body { display: block; }
+    .bang-wrap { max-width: 720px; margin: 0 auto; min-height: 100vh; }
+    .bang-top { display: flex; align-items: center; gap: 10px; padding: 12px 16px;
+      background: var(--panel); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 30; }
+    .bang-back { color: var(--muted); text-decoration: none; font-size: 14px; font-weight: 600; white-space: nowrap; }
+    .bang-top h1 { font-size: 18px; margin: 0; letter-spacing: -0.3px; flex: 1; }
+    .bang-sub { font-size: 11px; color: var(--muted); font-weight: 400; }
+    .bang-tabs { display: flex; gap: 6px; overflow-x: auto; padding: 10px 16px; background: var(--panel);
+      border-bottom: 1px solid var(--line); position: sticky; top: 53px; z-index: 29; -webkit-overflow-scrolling: touch; }
+    .bang-tabs::-webkit-scrollbar { display: none; }
+    .btab { flex: 0 0 auto; padding: 6px 13px; border-radius: 999px; border: 1px solid var(--line);
+      background: transparent; color: var(--muted); font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+    .btab.active { background: var(--accent, #D4A656); color: #1a1a1a; border-color: transparent; }
+    .breg { display: flex; gap: 6px; overflow-x: auto; padding: 8px 16px 4px; }
+    .breg::-webkit-scrollbar { display: none; }
+    .bchip { flex: 0 0 auto; padding: 4px 11px; border-radius: 999px; border: 1px solid var(--line);
+      background: transparent; color: var(--muted); font-size: 12px; cursor: pointer; white-space: nowrap; }
+    .bchip.active { background: #2a2a33; color: #fff; border-color: var(--muted); }
+    .feed { padding: 6px 0 90px; }
+    .post-card { display: flex; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--line); cursor: pointer; }
+    .post-card:hover { background: rgba(255,255,255,0.02); }
+    .pc-body { flex: 1; min-width: 0; }
+    .pc-meta1 { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; flex-wrap: wrap; }
+    .pc-cat { font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 6px; color: #fff; }
+    .pc-title { font-size: 15px; font-weight: 600; line-height: 1.35; margin: 0 0 5px;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .pc-snippet { font-size: 13px; color: var(--muted); line-height: 1.4; margin: 0 0 6px;
+      display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+    .pc-meta2 { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--muted); }
+    .pc-nick { font-weight: 600; color: #c8c8d0; }
+    .pc-thumb { flex: 0 0 auto; width: 64px; height: 64px; border-radius: 10px; object-fit: cover;
+      background: #20202a; border: 1px solid var(--line); }
+    .feed-empty { text-align: center; color: var(--muted); padding: 60px 20px; font-size: 14px; line-height: 1.6; }
+    .fab { position: fixed; bottom: 72px; right: 22px; width: 56px; height: 56px; border-radius: 50%;
+      background: var(--accent, #D4A656); color: #1a1a1a; border: none; font-size: 24px; cursor: pointer;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.35); z-index: 40; display: flex; align-items: center; justify-content: center; }
+    /* 모달 */
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; display: flex;
+      align-items: flex-end; justify-content: center; }
+    .modal.hidden { display: none; }
+    .modal-card { background: var(--panel, #15151c); width: 100%; max-width: 720px; max-height: 92vh;
+      overflow-y: auto; border-radius: 18px 18px 0 0; padding: 18px 16px 28px; }
+    @media (min-width: 600px) { .modal { align-items: center; } .modal-card { border-radius: 18px; } }
+    .modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .modal-head h3 { margin: 0; font-size: 17px; }
+    .mclose { background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; }
+    .bang-form label { display: block; font-size: 12px; color: var(--muted); margin: 12px 0 5px; font-weight: 600; }
+    .bang-form input[type=text], .bang-form input[type=password], .bang-form select, .bang-form textarea {
+      width: 100%; box-sizing: border-box; background: #1c1c25; border: 1px solid var(--line); border-radius: 10px;
+      color: #fff; padding: 11px 12px; font-size: 14px; font-family: inherit; }
+    .bang-form textarea { min-height: 150px; resize: vertical; line-height: 1.5; }
+    .nick-row { display: flex; gap: 8px; }
+    .nick-row input { flex: 1; }
+    .nick-dice { flex: 0 0 auto; width: 44px; border-radius: 10px; border: 1px solid var(--line);
+      background: #1c1c25; color: var(--muted); font-size: 18px; cursor: pointer; }
+    .row2 { display: flex; gap: 10px; }
+    .row2 > div { flex: 1; }
+    .img-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; align-items: center; }
+    .img-thumb { position: relative; width: 64px; height: 64px; border-radius: 8px; overflow: hidden; border: 1px solid var(--line); }
+    .img-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .img-thumb .rm { position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.7); color: #fff;
+      border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 11px; cursor: pointer; line-height: 1; }
+    .img-add { width: 64px; height: 64px; border-radius: 8px; border: 1px dashed var(--line); background: #1c1c25;
+      color: var(--muted); font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; text-align: center; }
+    .submit-btn { width: 100%; margin-top: 18px; padding: 14px; border-radius: 12px; border: none;
+      background: var(--accent, #D4A656); color: #1a1a1a; font-size: 15px; font-weight: 700; cursor: pointer; }
+    .form-msg { font-size: 13px; margin-top: 10px; text-align: center; }
+    .form-msg.err { color: #ff6b6b; } .form-msg.ok { color: #4ade80; }
+    /* 상세 */
+    .detail-title { font-size: 19px; font-weight: 700; margin: 4px 0 8px; line-height: 1.35; }
+    .detail-meta { display: flex; gap: 10px; font-size: 12px; color: var(--muted); margin-bottom: 14px; align-items: center; flex-wrap: wrap; }
+    .detail-content { font-size: 15px; line-height: 1.65; white-space: pre-wrap; word-break: break-word; }
+    .detail-imgs { margin: 14px 0; display: flex; flex-direction: column; gap: 8px; }
+    .detail-imgs img { width: 100%; border-radius: 12px; }
+    .like-bar { display: flex; gap: 10px; margin: 18px 0; }
+    .like-btn { flex: 1; padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: #1c1c25;
+      color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; }
+    .like-btn.on { border-color: var(--accent, #D4A656); color: var(--accent, #D4A656); }
+    .del-link { font-size: 12px; color: var(--muted); cursor: pointer; text-decoration: underline; }
+    .cmts { margin-top: 8px; border-top: 1px solid var(--line); padding-top: 14px; }
+    .cmt { padding: 10px 0; border-bottom: 1px solid var(--line); }
+    .cmt-top { display: flex; gap: 8px; align-items: center; font-size: 12px; color: var(--muted); margin-bottom: 3px; }
+    .cmt-nick { font-weight: 700; color: #c8c8d0; }
+    .cmt-text { font-size: 14px; line-height: 1.45; white-space: pre-wrap; word-break: break-word; }
+    .cmt-input { display: flex; gap: 8px; margin-top: 12px; }
+    .cmt-input input { flex: 1; }
+    .cmt-input button { flex: 0 0 auto; padding: 0 16px; border-radius: 10px; border: none;
+      background: var(--accent, #D4A656); color: #1a1a1a; font-weight: 700; cursor: pointer; }
+    .cmt-empty { color: var(--muted); font-size: 13px; padding: 8px 0; }
+    .cmt.reply { margin-left: 20px; padding-left: 10px; border-left: 2px solid var(--line); border-bottom: none; }
+    .cmt.reply .cmt-nick { color: var(--muted); }
+    .reply-btn { background: none; border: none; color: var(--muted); font-size: 12px; font-weight: 600; cursor: pointer; padding: 3px 0 0; }
+    .reply-btn:hover { color: var(--accent, #D4A656); }
+    .reply-box { margin: 8px 0 4px; }
+    .reply-box .rNick { flex: 0 0 84px; background: #1c1c25; border: 1px solid var(--line); border-radius: 8px; color: #fff; padding: 8px; font-size: 12px; }
+    .reply-box .rText { flex: 1; background: #1c1c25; border: 1px solid var(--line); border-radius: 8px; color: #fff; padding: 8px 10px; font-size: 13px; }
+    .cmt-write { margin-top: 12px; }
+    .cmt-id { display: flex; gap: 8px; margin-bottom: 8px; }
+    .cmt-id input[type=text], .cmt-id input[type=password] { background: #1c1c25; border: 1px solid var(--line); border-radius: 8px; color: #fff; padding: 8px 10px; font-size: 13px; }
+    .cmt-cnt { color: var(--muted); font-weight: 400; font-size: 13px; }
+    /* 비회원 작성 모드 박스 */
+    .guest-box { background: rgba(93,170,46,.12); border: 1px solid rgba(93,170,46,.35); border-radius: 10px;
+      padding: 11px 13px; margin-bottom: 6px; }
+    .guest-box b { display: block; font-size: 13px; color: #7fd14a; margin-bottom: 2px; }
+    .guest-box span { font-size: 12px; color: var(--muted); }
+    /* 리치텍스트 에디터 */
+    .rte { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: #1c1c25; }
+    .rte-tools { display: flex; align-items: center; gap: 2px; padding: 6px 8px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+    .rte-tools button { background: transparent; border: none; color: var(--muted); width: 30px; height: 30px; border-radius: 7px;
+      font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .rte-tools button:hover { background: var(--panel-2, #23232b); color: #fff; }
+    .rte-div { width: 1px; height: 18px; background: var(--line); margin: 0 4px; }
+    .rte-editor { min-height: 150px; max-height: 320px; overflow-y: auto; padding: 12px; font-size: 14px; line-height: 1.6;
+      color: #fff; outline: none; }
+    .rte-editor:empty:before { content: attr(data-ph); color: var(--muted); }
+    .rte-editor img { max-width: 100%; border-radius: 8px; margin: 6px 0; }
+    .rte-editor a { color: var(--accent, #D4A656); }
+    /* 상세 본문 HTML */
+    .detail-content img { max-width: 100%; border-radius: 10px; margin: 6px 0; }
+    .detail-content a { color: var(--accent, #D4A656); }
+    .detail-content ul, .detail-content ol { padding-left: 22px; }
+    /* ··· 메뉴 */
+    .dmenu-wrap { position: relative; }
+    .dmenu-btn { background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; padding: 0 6px; }
+    .dmenu { position: absolute; right: 0; top: 26px; background: var(--panel-2, #23232b); border: 1px solid var(--line);
+      border-radius: 10px; overflow: hidden; min-width: 110px; box-shadow: 0 6px 20px rgba(0,0,0,.5); z-index: 5; }
+    .dmenu.hidden { display: none; }
+    .dmenu button { display: block; width: 100%; text-align: left; background: none; border: none; color: var(--text, #fff);
+      font-size: 13px; padding: 10px 14px; cursor: pointer; }
+    .dmenu button:hover { background: rgba(255,255,255,.06); }
+  </style>
+</head>
+<body>
+  <div class="bang-wrap">
+    <div class="bang-top">
+      <a class="bang-back" href="./" aria-label="지도로">← 지도</a>
+      <h1>💬 놀자방 <span class="bang-sub">오늘 어디가 물 좋아?</span></h1>
+    </div>
+    <nav class="bang-tabs" id="catTabs"></nav>
+    <div class="breg" id="regChips"></div>
+    <div class="feed" id="feed"><div class="feed-empty">불러오는 중…</div></div>
+    <button class="fab" id="writeFab" type="button" aria-label="글쓰기">✏️</button>
+  </div>
+
+  <!-- 글쓰기 모달 -->
+  <div class="modal hidden" id="writeModal">
+    <div class="modal-card">
+      <div class="modal-head"><h3>✏️ 놀자방 글쓰기</h3><button class="mclose" id="writeClose" type="button">✕</button></div>
+      <div class="bang-form">
+        <div class="guest-box">
+          <b>비회원 작성 모드</b>
+          <span>닉네임·비번으로 바로 작성. 카카오 로그인은 곧 추가돼요.</span>
+        </div>
+        <div class="row2">
+          <div>
+            <label>닉네임</label>
+            <div class="nick-row">
+              <input id="wNick" type="text" maxlength="16" placeholder="닉네임" />
+              <button class="nick-dice" id="wDice" type="button" title="랜덤">🔀</button>
+            </div>
+          </div>
+          <div>
+            <label>비밀번호 <span style="font-weight:400">(삭제용·선택)</span></label>
+            <input id="wPw" type="password" maxlength="20" placeholder="삭제할 때 필요" />
+          </div>
+        </div>
+        <div class="row2">
+          <div><label>카테고리</label><select id="wCat"></select></div>
+          <div><label>지역 <span style="font-weight:400">(선택)</span></label><select id="wReg"></select></div>
+        </div>
+        <label>제목</label>
+        <input id="wTitle" type="text" maxlength="80" placeholder="예: 오늘 이태원 물 좋음? 여자2 출발" />
+        <label>내용</label>
+        <div class="rte">
+          <div class="rte-tools">
+            <button type="button" data-cmd="bold" title="굵게"><b>B</b></button>
+            <button type="button" data-cmd="italic" title="기울임"><i>I</i></button>
+            <button type="button" data-cmd="strikeThrough" title="취소선"><s>S</s></button>
+            <span class="rte-div"></span>
+            <button type="button" data-cmd="insertUnorderedList" title="목록">•</button>
+            <button type="button" data-cmd="insertOrderedList" title="번호목록">1.</button>
+            <span class="rte-div"></span>
+            <button type="button" data-cmd="createLink" title="링크">🔗</button>
+            <button type="button" id="rteImg" title="이미지">🖼️</button>
+          </div>
+          <div id="wEditor" class="rte-editor" contenteditable="true" data-ph="지금 거기 어때? 붐벼? 같이 갈 사람? 자유롭게 적어줘"></div>
+        </div>
+        <label>사진 <span style="font-weight:400">(최대 5장)</span></label>
+        <div class="img-row" id="imgRow">
+          <label class="img-add" for="wFile">📷<br>추가</label>
+          <input id="wFile" type="file" accept="image/*" multiple hidden />
+        </div>
+        <button class="submit-btn" id="wSubmit" type="button">등록</button>
+        <div class="form-msg" id="wMsg"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 글 상세 모달 -->
+  <div class="modal hidden" id="detailModal">
+    <div class="modal-card">
+      <div class="modal-head"><h3 style="font-size:14px;color:var(--muted)">놀자방</h3><button class="mclose" id="detailClose" type="button">✕</button></div>
+      <div id="detailBody"></div>
+    </div>
+  </div>
+
+  <div id="banner" class="banner hidden"></div>
+
+  <!-- 하단 탭바 (지도 ↔ 놀자방) -->
+  <nav class="tabbar fixed">
+    <a class="tabbar-item" href="./"><span class="tb-ic">🗺️</span><span>지도</span></a>
+    <a class="tabbar-item active" href="bang.html"><span class="tb-ic">💬</span><span>놀자방</span></a>
+  </nav>
+
+  <script src="config.js"></script>
+  <script src="analytics.js"></script>
+  <script src="supabase.js"></script>
+  <script src="bang.js"></script>
+</body>
+</html>

@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>놀자맵 · 관리자</title>
+  <style>
+    :root {
+      --bg:#0f0f12; --panel:#1a1a20; --panel-2:#23232b; --line:#33333d;
+      --text:#ececf0; --muted:#9a9aa6; --accent:#D4A656; --green:#4ade80; --red:#ff6b6b;
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--bg); color:var(--text); font-family:-apple-system,"Malgun Gothic",sans-serif; }
+    .wrap { max-width:680px; margin:0 auto; padding:18px 14px 60px; }
+    h1 { font-size:20px; margin:6px 0 2px; }
+    .sub { color:var(--muted); font-size:13px; margin:0 0 18px; }
+    a.back { color:var(--accent); font-size:13px; text-decoration:none; }
+
+    /* 로그인 */
+    .login { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:22px; max-width:340px; margin:40px auto; }
+    .login h2 { margin:0 0 14px; font-size:17px; }
+    .login input { width:100%; padding:12px; margin-bottom:10px; border-radius:10px; border:1px solid var(--line); background:var(--panel-2); color:var(--text); font-size:14px; }
+    .login button { width:100%; padding:13px; border:none; border-radius:10px; background:var(--accent); color:#1a1a20; font-weight:800; font-size:15px; cursor:pointer; }
+    .login .msg { color:var(--red); font-size:13px; margin-top:8px; min-height:16px; }
+
+    /* 헤더 바 */
+    .bar { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+    .bar .stat { font-size:13px; color:var(--muted); }
+    .bar .stat b { color:var(--accent); }
+    .logout { background:var(--panel-2); border:1px solid var(--line); color:var(--muted); border-radius:8px; padding:6px 12px; font-size:12px; cursor:pointer; }
+
+    .tabs { display:flex; gap:8px; margin-bottom:14px; }
+    .tab { flex:1; padding:9px; border-radius:10px; border:1px solid var(--line); background:var(--panel); color:var(--muted); font-size:13px; font-weight:700; cursor:pointer; }
+    .tab.active { background:var(--accent); color:#1a1a20; border-color:transparent; }
+
+    .card { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:10px; }
+    .card.verified { border-color:rgba(74,222,128,.4); }
+    .card .row1 { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:6px; }
+    .card .name { font-size:16px; font-weight:800; }
+    .pill { font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px; }
+    .pill.new { background:#5A20A5; color:#fff; }
+    .pill.event { background:#C77DFF; color:#1a1a20; }
+    .pill.edit { background:#ff8c42; color:#1a1a20; }
+    .pill.ok { background:var(--green); color:#10331c; }
+    .pill.cat { background:var(--panel-2); color:var(--muted); }
+    .card .meta { font-size:13px; color:var(--muted); line-height:1.6; margin:4px 0; }
+    .card .meta b { color:var(--text); font-weight:600; }
+    .card .memo { background:var(--panel-2); border-radius:8px; padding:8px 10px; font-size:13px; margin:6px 0; white-space:pre-wrap; }
+    .card .links a { color:var(--accent); font-size:12px; text-decoration:none; margin-right:10px; }
+    .acts { display:flex; gap:8px; margin-top:10px; }
+    .acts button { flex:1; padding:10px; border:none; border-radius:9px; font-size:13px; font-weight:800; cursor:pointer; }
+    .b-ok { background:var(--green); color:#10331c; }
+    .b-undo { background:var(--panel-2); color:var(--text); border:1px solid var(--line)!important; }
+    .b-del { background:rgba(255,107,107,.15); color:var(--red); border:1px solid rgba(255,107,107,.4)!important; }
+    .empty { text-align:center; color:var(--muted); padding:40px 0; font-size:14px; }
+    .hidden { display:none; }
+    /* 놀자방 모더레이션 */
+    .ptitle { font-size:15px; font-weight:700; margin:4px 0; }
+    .pcontent { font-size:13px; color:var(--muted); white-space:pre-wrap; margin:6px 0; max-height:90px; overflow:auto; }
+    .pimg { display:flex; gap:6px; flex-wrap:wrap; margin:6px 0; }
+    .pimg img { width:54px; height:54px; object-fit:cover; border-radius:7px; border:1px solid var(--line); }
+    .cmts-admin { margin-top:8px; border-top:1px solid var(--line); padding-top:6px; }
+    .cmt-admin { display:flex; gap:8px; align-items:flex-start; padding:7px 0; font-size:13px; border-bottom:1px solid var(--line); }
+    .cmt-admin .ct { flex:1; line-height:1.4; }
+    .cmt-admin .cn { color:var(--text); font-weight:700; font-size:12px; }
+    .cmt-admin .cdel { flex:0 0 auto; background:rgba(255,107,107,.15); color:var(--red); border:1px solid rgba(255,107,107,.4); border-radius:7px; padding:4px 9px; font-size:12px; cursor:pointer; }
+    .cmts-empty { color:var(--muted); font-size:12px; padding:6px 0; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <!-- 로그인 화면 -->
+    <div id="loginView" class="login">
+      <h2>🔐 놀자맵 관리자</h2>
+      <input id="email" type="email" placeholder="이메일" autocomplete="username" />
+      <input id="pw" type="password" placeholder="비밀번호" autocomplete="current-password" />
+      <button id="loginBtn" type="button">로그인</button>
+      <div id="loginMsg" class="msg"></div>
+    </div>
+
+    <!-- 관리 화면 -->
+    <div id="adminView" class="hidden">
+      <a class="back" href="./">← 지도로</a>
+      <h1>관리자</h1>
+      <p class="sub">제보 승인·삭제 / 놀자방 글·댓글 모더레이션</p>
+      <div class="bar">
+        <div class="stat" id="stat"></div>
+        <button id="logoutBtn" class="logout" type="button">로그아웃</button>
+      </div>
+      <div class="tabs" id="modeTabs">
+        <button class="tab active" data-mode="submissions" type="button">📍 제보</button>
+        <button class="tab" data-mode="board" type="button">💬 놀자방</button>
+      </div>
+      <div class="tabs" id="subTabs">
+        <button class="tab active" data-tab="pending" type="button">⏳ 미승인</button>
+        <button class="tab" data-tab="verified" type="button">✅ 승인됨</button>
+        <button class="tab" data-tab="edit" type="button">✏️ 수정·폐업</button>
+      </div>
+      <div id="list"></div>
+    </div>
+  </div>
+
+  <script>
+    const SB_URL = "https://lxgcocblgulxjqfjvwfg.supabase.co";
+    const SB_KEY = "sb_publishable_ztkKhhHjrANrspaKy2UK8A_SYVhJURB";
+    let TOKEN = sessionStorage.getItem("nolja_admin_token") || null;
+    let rows = [];
+    let tab = "pending";
+    let mode = "submissions";   // submissions | board
+    let posts = [], pcomments = [], plikes = [];
+
+    const $ = (id) => document.getElementById(id);
+    function authHeaders(write) {
+      // 읽기는 publishable 키, 쓰기(수정·삭제)는 로그인 토큰 필요
+      return {
+        apikey: SB_KEY,
+        Authorization: "Bearer " + (write ? TOKEN : SB_KEY),
+        "Content-Type": "application/json",
+      };
+    }
+    function esc(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+    function ago(iso){const d=(Date.now()-new Date(iso).getTime())/1000;if(d<3600)return Math.floor(d/60)+"분 전";if(d<86400)return Math.floor(d/3600)+"시간 전";return Math.floor(d/86400)+"일 전";}
+
+    /* ---- 로그인 ---- */
+    async function login() {
+      const email = $("email").value.trim(), pw = $("pw").value;
+      if (!email || !pw) return ($("loginMsg").textContent = "이메일·비밀번호를 입력하세요");
+      $("loginMsg").textContent = "로그인 중…";
+      try {
+        const r = await fetch(`${SB_URL}/auth/v1/token?grant_type=password`, {
+          method: "POST",
+          headers: { apikey: SB_KEY, "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password: pw }),
+        });
+        const j = await r.json();
+        if (!r.ok || !j.access_token) throw new Error(j.error_description || j.msg || "로그인 실패");
+        TOKEN = j.access_token;
+        sessionStorage.setItem("nolja_admin_token", TOKEN);
+        showAdmin();
+      } catch (e) { $("loginMsg").textContent = "❌ " + e.message; }
+    }
+    function logout() {
+      TOKEN = null; sessionStorage.removeItem("nolja_admin_token");
+      $("adminView").classList.add("hidden"); $("loginView").classList.remove("hidden");
+    }
+    function showAdmin() {
+      $("loginView").classList.add("hidden"); $("adminView").classList.remove("hidden");
+      load();
+    }
+
+    /* ---- 데이터 ---- */
+    async function load() {
+      $("list").innerHTML = '<div class="empty">불러오는 중…</div>';
+      const r = await fetch(`${SB_URL}/rest/v1/submissions?select=*&order=created_at.desc`, { headers: authHeaders(false) });
+      rows = r.ok ? await r.json() : [];
+      const pend = rows.filter(s=>(s.type==="new"||s.type==="event")&&!s.verified).length;
+      const ver = rows.filter(s=>(s.type==="new"||s.type==="event")&&s.verified).length;
+      const ed = rows.filter(s=>s.type==="edit").length;
+      $("stat").innerHTML = `미승인 <b>${pend}</b> · 승인 <b>${ver}</b> · 수정·폐업 <b>${ed}</b>`;
+      render();
+    }
+    function filtered() {
+      if (tab==="edit") return rows.filter(s=>s.type==="edit");
+      const wantVer = tab==="verified";
+      return rows.filter(s=>(s.type==="new"||s.type==="event") && !!s.verified===wantVer);
+    }
+    function render() {
+      const items = filtered();
+      if (!items.length) { $("list").innerHTML = '<div class="empty">해당 항목이 없어요</div>'; return; }
+      $("list").innerHTML = items.map(card).join("");
+      items.forEach(s => {
+        const el = document.querySelector(`[data-id="${s.id}"]`);
+        if (!el) return;
+        const ok = el.querySelector(".b-ok"); if (ok) ok.onclick = () => setVerified(s.id, true);
+        const un = el.querySelector(".b-undo"); if (un) un.onclick = () => setVerified(s.id, false);
+        el.querySelector(".b-del").onclick = () => del(s.id, s.name);
+      });
+    }
+    function card(s) {
+      const typePill = s.type==="edit" ? '<span class="pill edit">✏️ 수정·폐업</span>'
+        : s.type==="event" ? '<span class="pill event">🎉 이벤트</span>' : '<span class="pill new">📍 새 장소</span>';
+      const verPill = s.verified ? '<span class="pill ok">✅ 승인됨</span>' : "";
+      const loc = (typeof s.lat==="number") ? `<a href="https://map.kakao.com/link/map/${encodeURIComponent(s.name)},${s.lat},${s.lng}" target="_blank">🗺️ 위치확인</a>` : "";
+      const insta = s.insta ? `<a href="${esc(s.insta)}" target="_blank">↗ 링크</a>` : "";
+      const acts = s.type==="edit"
+        ? `<button class="b-del">🗑 처리완료(삭제)</button>`
+        : (s.verified
+            ? `<button class="b-undo">↩ 승인취소</button><button class="b-del">🗑 삭제</button>`
+            : `<button class="b-ok">✅ 승인</button><button class="b-del">🗑 삭제</button>`);
+      return `<div class="card ${s.verified?"verified":""}" data-id="${s.id}">
+        <div class="row1">${typePill}${verPill}<span class="name">${esc(s.name||"(이름없음)")}</span></div>
+        <div class="row1">
+          <span class="pill cat">${esc(s.category||"-")}</span>
+          ${s.region?`<span class="pill cat">${esc(s.region)}</span>`:""}
+          ${s.event_date?`<span class="pill cat">📅 ${esc(s.event_date)}</span>`:""}
+          <span class="pill cat">${ago(s.created_at)}</span>
+        </div>
+        ${s.address?`<div class="meta">📍 <b>${esc(s.address)}</b></div>`:""}
+        ${s.type==="edit"&&s.target_id?`<div class="meta">대상 ID: <b>${esc(s.target_id)}</b></div>`:""}
+        ${s.memo?`<div class="memo">${esc(s.memo)}</div>`:""}
+        <div class="links">${loc}${insta}</div>
+        <div class="acts">${acts}</div>
+      </div>`;
+    }
+
+    /* ---- 액션 (로그인 토큰 필요) ---- */
+    async function setVerified(id, v) {
+      const r = await fetch(`${SB_URL}/rest/v1/submissions?id=eq.${id}`, {
+        method: "PATCH", headers: authHeaders(true), body: JSON.stringify({ verified: v }),
+      });
+      if (r.status === 401) return logout();
+      if (!r.ok) return alert("실패: " + r.status + " — 로그인 권한 확인");
+      await load();
+    }
+    async function del(id, name) {
+      if (!confirm(`"${name}" 제보를 삭제할까요? (되돌릴 수 없음)`)) return;
+      const r = await fetch(`${SB_URL}/rest/v1/submissions?id=eq.${id}`, { method: "DELETE", headers: authHeaders(true) });
+      if (r.status === 401) return logout();
+      if (!r.ok) return alert("삭제 실패: " + r.status);
+      await load();
+    }
+
+    /* ---- 놀자방 모더레이션 ---- */
+    const PCAT_COLOR = { "🔥지금어때":"#E5337E","후기":"#8B5CF6","같이가요":"#2EC4B6","질문":"#3B82F6","꿀팁":"#5DAA2E","자유":"#9C6B43" };
+    async function loadBoard() {
+      $("list").innerHTML = '<div class="empty">불러오는 중…</div>';
+      const [p, c, l] = await Promise.all([
+        fetch(`${SB_URL}/rest/v1/posts?select=*&order=created_at.desc`, { headers: authHeaders(false) }).then(r=>r.ok?r.json():[]),
+        fetch(`${SB_URL}/rest/v1/post_comments?select=*&order=created_at.asc`, { headers: authHeaders(false) }).then(r=>r.ok?r.json():[]),
+        fetch(`${SB_URL}/rest/v1/post_likes?select=post_id`, { headers: authHeaders(false) }).then(r=>r.ok?r.json():[]),
+      ]);
+      posts = p; pcomments = c; plikes = l;
+      $("stat").innerHTML = `글 <b>${posts.length}</b> · 댓글 <b>${pcomments.length}</b> · 좋아요 <b>${plikes.length}</b>`;
+      renderBoard();
+    }
+    function renderBoard() {
+      if (!posts.length) { $("list").innerHTML = '<div class="empty">아직 글이 없어요</div>'; return; }
+      const likeC = {}; plikes.forEach(x=>likeC[x.post_id]=(likeC[x.post_id]||0)+1);
+      const cByPost = {}; pcomments.forEach(c=>(cByPost[c.post_id]=cByPost[c.post_id]||[]).push(c));
+      $("list").innerHTML = posts.map(p => postCard(p, cByPost[p.id]||[], likeC[p.id]||0)).join("");
+      posts.forEach(p => {
+        const el = document.querySelector(`[data-pid="${p.id}"]`);
+        if (!el) return;
+        el.querySelector(".b-del").onclick = () => delPost(p.id, p.title);
+        el.querySelectorAll(".cdel").forEach(b => b.onclick = () => delComment(b.dataset.cid));
+      });
+    }
+    function postCard(p, cmts, likes) {
+      const col = PCAT_COLOR[p.category] || "#8A8A99";
+      const imgs = (p.images||[]).map(u=>`<img src="${esc(u)}" alt="" />`).join("");
+      const cHtml = cmts.length
+        ? cmts.map(c=>`<div class="cmt-admin"><div class="ct"><span class="cn">${esc(c.nick)}</span> · ${ago(c.created_at)}<br>${esc(c.text)}</div><button class="cdel" data-cid="${c.id}">삭제</button></div>`).join("")
+        : `<div class="cmts-empty">댓글 없음</div>`;
+      return `<div class="card" data-pid="${p.id}">
+        <div class="row1">
+          <span class="pill" style="background:${col};color:#fff">${esc(p.category)}</span>
+          ${p.region?`<span class="pill cat">${esc(p.region)}</span>`:""}
+          <span class="pill cat">${ago(p.created_at)}</span>
+        </div>
+        <div class="ptitle">${esc(p.title)}</div>
+        ${p.content?`<div class="pcontent">${esc(p.content)}</div>`:""}
+        ${imgs?`<div class="pimg">${imgs}</div>`:""}
+        <div class="meta"><b>${esc(p.nick)}</b> · 💬 ${cmts.length} · ❤️ ${likes}</div>
+        <div class="acts"><button class="b-del">🗑 글 삭제 (댓글·좋아요 함께)</button></div>
+        <div class="cmts-admin">${cHtml}</div>
+      </div>`;
+    }
+    async function delPost(id, title) {
+      if (!confirm(`글 "${title}" 삭제할까요? 댓글·좋아요도 함께 삭제돼요. (되돌릴 수 없음)`)) return;
+      const r = await fetch(`${SB_URL}/rest/v1/posts?id=eq.${id}`, { method:"DELETE", headers: authHeaders(true) });
+      if (r.status === 401) return logout();
+      if (!r.ok) return alert("삭제 실패: " + r.status);
+      await loadBoard();
+    }
+    async function delComment(id) {
+      if (!confirm("이 댓글을 삭제할까요?")) return;
+      const r = await fetch(`${SB_URL}/rest/v1/post_comments?id=eq.${id}`, { method:"DELETE", headers: authHeaders(true) });
+      if (r.status === 401) return logout();
+      if (!r.ok) return alert("삭제 실패: " + r.status);
+      await loadBoard();
+    }
+    function switchMode(m) {
+      mode = m;
+      document.querySelectorAll("#modeTabs .tab").forEach(t=>t.classList.toggle("active", t.dataset.mode===m));
+      $("subTabs").classList.toggle("hidden", m!=="submissions");
+      if (m === "board") loadBoard(); else load();
+    }
+
+    /* ---- 초기화 ---- */
+    $("loginBtn").onclick = login;
+    $("pw").addEventListener("keydown", e => { if (e.key==="Enter") login(); });
+    $("logoutBtn").onclick = logout;
+    document.querySelectorAll("#modeTabs .tab").forEach(t => t.onclick = () => switchMode(t.dataset.mode));
+    document.querySelectorAll("#subTabs .tab").forEach(t => t.onclick = () => {
+      tab = t.dataset.tab;
+      document.querySelectorAll("#subTabs .tab").forEach(x=>x.classList.toggle("active", x===t));
+      render();
+    });
+    if (TOKEN) showAdmin(); else $("email").focus();
+  </script>
+</body>
+</html>
